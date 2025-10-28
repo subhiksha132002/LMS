@@ -1,30 +1,32 @@
 import express from "express";
 import Book from "../model/bookSchema.js";
+import { authenticate } from "../middleware/authenticate.js";
+import { authorize } from "../middleware/authorize.js";
 
 const router = express.Router();
 
-router.get('/', async (req, res) => {
+router.get('/', authenticate, async (req, res) => {
     try {
-        const books = await Book.find();
+        const books = await Book.find();    
         res.status(200).json(books);
     } catch (error) {
-        res.status(500).send(error);
+        res.status(500).send(error);    
     }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticate, async (req, res) => { 
     try {
 
         const book = await Book.findById(req.params.id);
         if(!book) return res.status(404).send("Book not found");
-        
+
         res.status(200).json(book);
     } catch (error) {
         res.status(500).send(error);
     }
 })
 
-router.post('/', async (req, res) => {
+router.post('/', authenticate, authorize,async (req, res) => {
     try {
 
         const book = new Book(req.body);
@@ -38,7 +40,7 @@ router.post('/', async (req, res) => {
 
 
 
-router.put('/:id', async (req, res) => {
+router.put('/:id',authenticate, authorize, async (req, res) => {
     try {
 
         const updatedBook = await Book.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -50,7 +52,7 @@ router.put('/:id', async (req, res) => {
     }
 })
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticate, authorize, async (req, res) => {
     try {
         const deletedBook = await Book.findByIdAndDelete(req.params.id);
         if(!deletedBook) return res.status(404).send("Book not found");
